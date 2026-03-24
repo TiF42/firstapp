@@ -1,24 +1,24 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+import streamlit as st
+import requests
 
-app = FastAPI()
+st.title("Streamlit + FastAPI Demo")
 
-# Simple in-memory "database"
-items = {}
+api_url = "http://127.0.0.1:8000/items"
 
-class Item(BaseModel):
-    name: str
-    price: float
+# Create item
+st.header("Add Item")
+item_id = st.number_input("Item ID", min_value=1, step=1)
+name = st.text_input("Name")
+price = st.number_input("Price", min_value=0.0, step=0.01)
 
-@app.get("/")
-def read_root():
-    return {"message": "Hello! FastAPI is running."}
+if st.button("Add Item"):
+    data = {"name": name, "price": price}
+    response = requests.post(f"{api_url}/{item_id}", json=data)
+    st.write(response.json())
 
-@app.get("/items/{item_id}")
-def get_item(item_id: int):
-    return items.get(item_id, {"error": "Item not found."})
-
-@app.post("/items/{item_id}")
-def create_item(item_id: int, item: Item):
-    items[item_id] = item
-    return {"message": f"Item {item_id} created", "item": item}
+# Get item
+st.header("Get Item")
+get_id = st.number_input("Item ID to fetch", min_value=1, step=1, key="get")
+if st.button("Fetch Item"):
+    response = requests.get(f"{api_url}/{get_id}")
+    st.write(response.json())
